@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{{user_data[0]}}</title>
+    <meta charset="UTF-8" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{ url_for('static', filename='css/favicon.png') }}"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/user.css') }}"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+  </head>
+
+  <body>
+    {% if not logout %}
+    <div class="header">
+      <h1>
+        <img src="{{ url_for('static', filename='css/icon.png') }}" />
+        {{user_data[0]}}
+      </h1>
+      <p>Sleep Analysis</p>
+    </div>
+
+    <div class="navbar" id="navbar">
+      <a href="#">Temperature</a>
+      <a href="#check2">Humidity</a>
+      <a href="#">LDR</a>
+      <a href="#">PIR</a>
+      <input type="hidden" id="username" name="username" value="{{username}}" />
+      <input type="date" id="birthday" name="birthday" />
+      <button id="fetchdate" onclick="getdateData()">Submit</button>
+      <a class="right" href="http://127.0.0.1:5000/">Log out</a>
+    </div>
+
+    <div class="row">
+      <div class="side" style="width: 20%">
+        <h2 style="text-align: center">Profile</h2>
+        <div class="fakeimg" style="height: inherit">
+        <h3 style="line-height: 1px;">Name</h3>   {{user_data[0]}}
+        <h3 style="line-height: 1px;">Age</h3>         {{user_data[1]}}
+        <h3 style="line-height: 1px;">Sex</h3>         {{user_data[2]}}
+        <h3 style="line-height: 1px;">Occupation</h3>  {{user_data[3]}}
+        </div>
+        <h3 style="text-align: center">Overall Sleep Analysis:</h3>
+        <p><str>The graphs below show how well you have slept till date:</p>
+        <p>
+         <strong> Graph 1 </strong>shows <strong>Sleep Score vs Sleep Efficiency</strong> which are 2 cannonical
+          parameters for measuring quality of sleep.
+        </p>
+        <div class="fakeimg" style="height: 200px">
+          <canvas id="overall_analysis" style="width: 100%;"></canvas>
+          <br>
+        </div>
+        <p>Graph 2 shows Sleep Score vs Date.</p>
+
+        <div class="fakeimg" style="height: 200px">
+          <canvas id="sleep_scr" style="width: 100%;"></canvas>
+          <br>
+        </div>
+
+        <p>Graph 3 shows Sleep Efficiency vs Date.</p>
+        <div class="fakeimg" style="height: 200px">
+          <canvas id="sleep_eff" style="width: 100%;"></canvas>
+          <br>
+        </div>
+        
+
+        <br />
+        <div class="fakeimg" style="height: inherit">
+          <h3>More Analysis:</h3>
+          <!-- <br> -->
+          <p><strong>Your average sleep duration has been hours :</strong></p>
+          <p id="p_avg_h">sg</p>
+          <p ><strong>Your average sleep score has been :</strong></p>
+          <p id="p_avg_s">sdg</p>
+          <p ><strong>Your average sleep efficiency has been :</strong></p>
+          <p id="p_avg_e">jh</p>
+        </div>
+
+        <br />
+      </div>
+      <!-- </div> -->
+      <div class="main">
+        <h2 style="text-align: center">Sleep Analysis</h2>
+        <h5 style="text-align: center">Temperature vs time</h5>
+        <div class="fakeimg" style="">
+          <canvas id="temp"></canvas>
+        </div>
+
+        <div class="fakeimg1" style="">
+          <h5 style="text-align: center" id="check1">Humidity vs time</h5>
+          <canvas id="humidity"></canvas>
+        </div>
+        <h5 style="text-align: center">PIR vs time</h5>
+
+        <!-- dghkhfkhfkhcj -->
+        <div class="fakeimg2" style="">
+          <canvas id="pir"></canvas>
+        </div>
+        <h5 style="text-align: center">LDR vs time</h5>
+        <div class="fakeimg3" style="">
+          <canvas id="ldr"></canvas>
+        </div>
+        <b><p>Data Plotted on the above graphs:</p></b>
+        <p>
+          The above data shows the variation of the surrounding ambient
+          conditions on a daily basis and then we calculate the Sleep Score and
+          Sleep Efficiency according to our cannonical formulas.
+        </p>
+        <br />
+        <h2>Sleep Analysis for the following day:</h2>
+        <h4>Analysis:</h4>
+        <!-- <div class="fakeimg" style="height: 200px">Chart</div> -->
+        <p style="line-height: 1px;">You slept for hours today: </p><p id="lh"></p>
+        <p style="line-height: 1px;">Your <b>sleep score</b> for today is: </p><p id="ls"></p>
+        <p style="line-height: 1px;">Your <b>sleep efficiency</b> for today is: </p><p id="le"></p>
+        <h4 style="line-height: 1px;">Inference:</h4>
+        
+        <p id="inference"> </p>
+      </div>
+    </div>
+
+    <div class="footer" id="check2">
+      <h2>Sleep Gang</h2>
+    </div>
+    <!-- <script src="{{ url_for('static', filename='js/user_info.js') }}"></script> -->
+
+    <script>
+      var dateVal = {{ dateVal| tojson }};
+      var tem = dateVal[0].slice(4, 8) + '-' + dateVal[0].slice(2, 4) + '-' + dateVal[0].slice(0, 2);
+      // alert(tem)
+      document.getElementById('birthday').value = tem;
+    </script>
+    <script>
+
+      var data_xyz = {{ date_info| tojson }};
+      // console.log(data_xyz);
+
+      window.onscroll = function () { scrollFunction() };
+
+      function findTop(element) {
+        var rec = element.getBoundingClientRect();
+        return rec.top + window.scrollY;
+      }
+
+      var aa = findTop(document.getElementById("navbar"))
+
+      function scrollFunction() {
+        if (document.body.scrollTop > aa || document.documentElement.scrollTop > aa) {
+          document.getElementById("navbar").style.position = "fixed";
+          document.getElementById("navbar").style.top = "0px"
+        } else {
+          document.getElementById("navbar").style.position = "relative";
+        }
+      }
+
+      function makechart(id, label, data, chart_label) {
+        Chart.defaults.global.responsive = false;
+
+        // define the chart data
+
+        chartData = {
+          labels: label,
+          datasets: [{
+            label: chart_label,
+
+            data: data,fill: false,
+            borderColor: 'rgb(75, 192, 192)',
+
+          }]
+        }
+
+        // get chart canvas
+        var ctx = document.getElementById(id).getContext("2d");
+
+        // create the chart using the chart canvas
+        var temp = new Chart(ctx, {
+          type: 'line',
+          data: chartData,
+        });
+      }
+
+      function makeTemp(label, data_, chart_label) {
+        Chart.defaults.global.responsive = false;
+        const DATA_COUNT = data_.length;
+        const NUMBER_CFG = { count: DATA_COUNT, min: 0, max: 100 };
+
+        const data = {
+          labels: label,
+          datasets: [{
+            label: chart_label,
+            data: data_,
+            fill: false,
+            borderColor: 'rgb(75, 192, 192)',
+            // tension: 0.1
+          }]
+        };
+
+        const config = {
+          type: 'line',
+          data: data,
+          options: {
+            responsive: true,
+            plugins: {
+              title: {
+                display: true,
+                text: 'Suggested Min and Max Settings'
+              }
+            },
+            scales: {
+              y: {
+                // the data minimum used for determining the ticks is Math.min(dataMin, suggestedMin)
+                suggestedMin: 0,
+
+                // the data maximum used for determining the ticks is Math.max(dataMax, suggestedMax)
+                suggestedMax: 100,
+              }
+            }
+          }
+        };
+
+        new Chart(document.getElementById('temp').getContext("2d"),
+          config);
+      }
+      function overall_analysis(dateVal) {
+        var date_label_1 = data_xyz[dateVal]['date']
+        // var humidity_label = data_xyz[dateVal][1]
+        var humidity_label = data_xyz[dateVal]['humid']
+        var pir_label = data_xyz[dateVal]['pir']
+        // var tem_label = data_xyz[dateVal][3]
+        var tem_label = data_xyz[dateVal]['temp']
+        var ldr_label = data_xyz[dateVal]['ldr']
+
+        var temp_score = 0, humidity_score = 0, min_motion = 0, motion = 0, sleep_dur;
+        last_date = date_label_2[date_label_2.length - 1].split(':')
+        first_date = date_label_2[0].split(':')
+        sleep_dur = parseFloat(last_date[0]) - parseFloat(first_date[0])
+        kk = sleep_dur
+        sleep_dur /= 9;
+
+        for (let i = 0; i < tem_label.length; i++) {
+          if (parseInt(tem_label[i]) >= 23 && parseInt(tem_label[i]) <= 26)
+            temp_score += 3;
+          else if ((parseInt(tem_label[i]) >= 26 && parseInt(tem_label[i]) < 29) || (parseInt(tem_label[i]) >= 20 && parseInt(tem_label[i]) < 23))
+            temp_score += 2;
+          else
+            temp_score += 1;
+        }
+        for (let i = 0; i < humidity_label.length; i++) {
+          if (parseInt(humidity_label[i]) >= 70 && parseInt(humidity_label[i]) <= 80)
+            humidity_score += 3;
+          else if ((parseInt(humidity_label[i]) <= 90 && parseInt(humidity_label[i]) > 80) || (parseInt(humidity_label[i]) >= 60 && parseInt(humidity_label[i]) < 70))
+            humidity_score += 2;
+          else
+            humidity_score += 1;
+        }
+        min_motion = Math.min(...pir_label);
+        min_motion = parseInt(min_motion);
+        for (let i = 0; i < pir_label.length; i++) {
+          motion += (parseInt(pir_label[i]) - min_motion);
+        }
+        var bmi = (motion) / (sleep_dur * 36)
+        var bmiscore;
+
+        if (bmi <= 0.5) bmiscore = 1;
+        else if (bmi <= 1) bmiscore = 3 / 4;
+        else if (bmi <= 1.5) bmiscore = 2 / 4;
+        else bmiscore = 1 / 4;
+
+        var ldr_score = 0;
+        for (let i = 0; i < ldr_label.length; i++)
+          ldr_score += parseInt(ldr_label[i]);
+        ldr_score /= 4;
+        ldr_score /= ldr_label.length;
+
+        temp_score /= 3;
+        temp_score /= tem_label.length;
+
+        humidity_score /= 3;
+        humidity_score /= humidity_label.length;
+
+        sleep_score = 40 * sleep_dur + (20 * (100 - bmiscore)) / 100 + 10 * (temp_score + humidity_score)
+
+        // console.log(ldr_score);
+        sleep_efi = 30 * ldr_score + (30 * (100 - bmiscore)) / 100 + 20 * (temp_score + humidity_score)
+        sleep_score = Math.trunc(sleep_score);
+        sleep_efi = Math.trunc(sleep_efi);
+        return [sleep_efi, sleep_score, kk]
+
+      }
+      function getdateData() {
+        // alert(document.getElementById('birthday').value)
+        // alert(typeof document.getElementById('birthday').value)
+        dateVal = String((String(document.getElementById('birthday').value)).split('-')
+          .reverse().join(''))
+        if (dateVal == '') {
+          alert('Select date')
+          return
+        }
+        if (dateVal in data_xyz) {
+          // alert('yes')
+          var date_label_1 = data_xyz[dateVal]['date']
+          date_label_2 = new Array();
+          for (let i = 0; i < date_label_1.length; i++) {
+            date_label_2.push(data_xyz[dateVal]['date'][i][9] + data_xyz[dateVal]['date'][i][10] + ':' + data_xyz[dateVal]['date'][i][11] + data_xyz[dateVal]['date'][i][12] + ":" + data_xyz[dateVal]['date'][i][13] + data_xyz[dateVal]['date'][i][14]);
+          }
+          // var humidity_label = data_xyz[dateVal][1]
+          var humidity_label = data_xyz[dateVal]['humid']
+          var pir_label = data_xyz[dateVal]['pir']
+          // var tem_label = data_xyz[dateVal][3]
+          var tem_label = data_xyz[dateVal]['temp']
+          var ldr_label = data_xyz[dateVal]['ldr']
+
+
+          // console.log(tem_label)
+          makechart("humidity", date_label_2, humidity_label, "Humidity")
+          makechart("ldr", date_label_2, ldr_label, "LDR")
+
+          makechart("pir", date_label_2, pir_label, "PIR")
+
+          makeTemp(date_label_2, tem_label, 'Temperature')
+
+          console.log(dateVal)
+          var t = overall_analysis(dateVal);
+          console.log(t)
+          document.getElementById('lh').innerHTML = t[2]
+          document.getElementById('ls').innerHTML = t[1]
+          document.getElementById('le').innerHTML = t[0]
+          if (parseFloat(t[2])>=7 && parseFloat(t[0])>=65)
+          {
+              document.getElementById('inference').innerHTML="You slept for enough hours today and your sleep was efficient";
+              // you slept for enough hours today and your sleep was efficient
+          }
+          else if(parseFloat(t[2])>=7 && parseFloat(t[0])<65)
+          {
+            document.getElementById('inference').innerHTML="You slept for enough hours today and your sleep was not efficient";
+              // you slept for enough hours today and your sleep was not efficient
+          }
+          else if(parseFloat(t[2])<7 && parseFloat(t[0])>=65)
+          {
+            document.getElementById('inference').innerHTML="You didn't sleep for enough hours today and your sleep was efficient";
+              // you didn't sleep for enough hours today and your sleep was efficient
+          }
+          else if(parseFloat(t[2])<7 && parseFloat(t[0])<65)
+          {
+            document.getElementById('inference').innerHTML="You didn't sleep for enough hours today and your sleep was not  efficient";
+              // you didn't sleep for enough hours today and your sleep was not  efficient
+          }
+        }
+        else alert("We don't have data for specified date")
+
+
+      }
+      getdateData();
+
+      
+      var dateVal = {{ dateVal| tojson }};
+      var sleep_e = []
+      var sleep_sc = []
+      var avg_h = 0, avg_s = 0, avg_e = 0;
+      for (i = 0; i < dateVal.length; i++) {
+        var t = overall_analysis(dateVal[i]);
+        dateVal[i] = dateVal[i].slice(4, 8) + '-' + dateVal[i].slice(2, 4) + '-' + dateVal[i].slice(0, 2);
+        sleep_e.push(t[0]);
+        sleep_sc.push(t[1]);
+        avg_h += parseFloat(t[2])
+        avg_s += parseFloat(t[1])
+        avg_e += parseFloat(t[0])
+      }
+      avg_h/=dateVal.length;
+      avg_s/=dateVal.length;
+      avg_e/=dateVal.length;
+      document.getElementById("p_avg_h").innerHTML=avg_h;
+      document.getElementById("p_avg_s").innerHTML=avg_s;
+      document.getElementById("p_avg_e").innerHTML=avg_e;
+
+      makechart("overall_analysis", sleep_e, sleep_sc, "Overall Analysis (SE vs SS)")
+      makechart("sleep_scr",dateVal, sleep_sc, "Sleep Score")
+      makechart("sleep_eff",dateVal, sleep_e, "Sleep Efficiency")
+    </script>
+    {% else %}
+    <h3 style="margin: 5px">logged out</h3>
+    {% endif %}
+  </body>
+</html>
