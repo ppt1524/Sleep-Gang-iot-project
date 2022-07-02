@@ -27,14 +27,14 @@
     </div>
 
     <div class="navbar" id="navbar">
-      <a href="#temp">Temperature</a>
-      <a href="#humidity">Humidity</a>
-      <a href="#ldr">LDR</a>
-      <a href="#pir">PIR</a>
+      <a href="#temp" onclick="window.location.href = '#temp';">Temperature</a>
+      <a href="#humidity" onclick="window.location.href = '#humidity';">Humidity</a>
+      <a href="#ldr" onclick="window.location.href = '#ldr';">LDR</a>
+      <a href="#pir" onclick="window.location.href = '#pir';">PIR</a>
       <input type="hidden" id="username" name="username" value="{{username}}" />
       <input type="date" id="birthday" name="birthday" />
       <button id="fetchdate" onclick="getdateData()">Submit</button>
-      <a class="right" href="http://127.0.0.1:5000/">Log out</a>
+      <a class="right" href="http://sleepgangheroku.herokuapp.com">Log out</a>
     </div>
 
     <div class="row">
